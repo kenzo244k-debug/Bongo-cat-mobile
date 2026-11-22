@@ -41,28 +41,34 @@ jobs:
           unzip -q Bongo-Cat-Mobile-Android-Nativo.zip -d extracted
           echo "PROJECT_DIR=$GITHUB_WORKSPACE/extracted/Bongo-Cat-Mobile-arquivos/android-nativo" >> "$GITHUB_ENV"
 
-      - name: Inspect Android input implementation
+      - name: Fix accessibility key-filter registration
         run: |
-          echo "=== SOURCE FILES ==="
-          find extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main -type f -maxdepth 8 -print
-          echo "=== INPUT / OVERLAY REFERENCES ==="
-          grep -RniE "onKey|onTouch|dispatchGesture|AccessibilityService|TYPE_APPLICATION_OVERLAY|onGenericMotion|onHover|MotionEvent|KeyEvent|InputManager|mouse|keyboard|pointer" extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main || true
-          echo "=== ACCESSIBILITY SERVICE ==="
-          sed -n '1,240p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/CatAccessibilityService.kt
-          echo "=== MAIN ACTIVITY ==="
-          sed -n '1,260p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/MainActivity.kt
-          echo "=== OVERLAY SERVICE ==="
-          sed -n '1,300p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/CatOverlayService.kt
-          echo "=== APP JS ==="
-          sed -n '1,320p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/assets/app.js
-          echo "=== OVERLAY HTML ==="
-          sed -n '1,240p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/assets/overlay.html
-          echo "=== EVENT BUS ==="
-          sed -n '1,200p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/CatEventBus.kt
-          echo "=== ACCESSIBILITY CONFIG ==="
-          cat extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/res/xml/bongo_accessibility.xml
-          echo "=== MANIFEST ==="
-          cat extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/AndroidManifest.xml
+          python3 - <<'PY'
+          from pathlib import Path
+          base = Path("extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main")
+          xml = base / "res/xml/bongo_accessibility.xml"
+          s = xml.read_text()
+          if 'android:accessibilityFlags=' not in s:
+              s = s.replace(
+                  'android:accessibilityFeedbackType="feedbackGeneric"',
+                  'android:accessibilityFeedbackType="feedbackGeneric"\n    android:accessibilityFlags="flagRequestFilterKeyEvents"'
+              )
+          xml.write_text(s)
+
+          kt = base / "java/com/bongocat/mobile/CatAccessibilityService.kt"
+          s = kt.read_text()
+          s = s.replace(
+              'override fun onServiceConnected() { super.onServiceConnected() }',
+              '''override fun onServiceConnected() {
+                  super.onServiceConnected()
+                  serviceInfo = serviceInfo.apply {
+                      flags = flags or android.accessibilityservice.AccessibilityServiceInfo.FLAG_REQUEST_FILTER_KEY_EVENTS
+                  }
+              }'''
+          )
+          kt.write_text(s)
+          print("Accessibility key-filter flag configured in XML and at service connection.")
+          PY
 
       - name: Align Java and Kotlin JVM targets
         run: |
@@ -80,7 +86,7 @@ jobs:
                   jvmTarget = "17"
               }
           """
-          if "jvmTarget = \"17\"" not in s:
+          if 'jvmTarget = "17"' not in s:
               if marker not in s:
                   raise SystemExit("Bloco android não encontrado em app/build.gradle.kts")
               s = s.replace(marker, config, 1)
@@ -90,6 +96,13 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon --stacktrace assembleDebug
         working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Verify APK
+        run: |
+          APK="extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          ls -lh "$APK"
+          sha256sum "$APK"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
