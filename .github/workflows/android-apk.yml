@@ -1,0 +1,49 @@
+name: Build Bongo Cat Android APK
+
+on:
+  push:
+    paths:
+      - '.github/workflows/android-apk.yml'
+      - 'Bongo-Cat-Mobile-Android-Nativo.zip'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Extract Android project
+        run: |
+          unzip -q Bongo-Cat-Mobile-Android-Nativo.zip -d extracted
+          echo "PROJECT_DIR=$GITHUB_WORKSPACE/extracted/Bongo-Cat-Mobile-arquivos/android-nativo" >> "$GITHUB_ENV"
+
+      - name: Build debug APK
+        run: gradle --no-daemon --stacktrace assembleDebug
+        working-directory: ${{ env.PROJECT_DIR }}
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bongo-Cat-Mobile-debug-apk
+          path: extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14
