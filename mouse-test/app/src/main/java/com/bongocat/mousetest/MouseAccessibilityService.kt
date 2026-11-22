@@ -28,6 +28,9 @@ class MouseAccessibilityService : AccessibilityService() {
         super.onServiceConnected()
         val info = serviceInfo
         if (Build.VERSION.SDK_INT >= 34) {
+            // Android only delivers requested generic motion sources while touch exploration is enabled.
+            // Requested mouse events are not forwarded to the foreground app by the OS.
+            info.flags = info.flags or AccessibilityServiceInfo.FLAG_REQUEST_TOUCH_EXPLORATION_MODE
             info.setMotionEventSources(InputDevice.SOURCE_MOUSE or InputDevice.SOURCE_MOUSE_RELATIVE)
             serviceInfo = info
         }
