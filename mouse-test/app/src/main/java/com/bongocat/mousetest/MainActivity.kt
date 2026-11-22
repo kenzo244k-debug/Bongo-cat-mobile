@@ -52,7 +52,7 @@ class MainActivity : Activity() {
             setOnClickListener {
                 AlertDialog.Builder(this@MainActivity)
                     .setTitle("Atenção: teste experimental")
-                    .setMessage("Para tentar observar o mouse fora do app, o Android exige um serviço de acessibilidade. Dependendo do aparelho, esse serviço pode capturar eventos e fazer o mouse parar de controlar corretamente o jogo enquanto estiver ativado. Use primeiro em um app de teste, não em uma partida. Você pode desligá-lo nas configurações de Acessibilidade.")
+                    .setMessage("Para observar o mouse fora do app, o Android exige ativar o modo de exploração por toque e solicitar os eventos do mouse. O próprio Android informa que os eventos das fontes solicitadas não são enviados ao app que está em primeiro plano. Portanto, enquanto o teste estiver ativo, o mouse pode deixar de controlar o outro app e o toque na tela pode se comportar de forma diferente. Teste somente em uma tela/app sem importância, nunca durante uma partida. Desative o serviço nas configurações de Acessibilidade para restaurar o comportamento normal.")
                     .setNegativeButton("Cancelar", null)
                     .setPositiveButton("Entendi — abrir ajustes") { _, _ ->
                         startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
