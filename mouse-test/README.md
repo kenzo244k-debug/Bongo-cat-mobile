@@ -1,11 +1,17 @@
-# Bongo Cat Mouse Test
+# Bongo Cat Mouse Test — Floating Cat
 
-Projeto Android mínimo para verificar eventos de mouse físico em uma Activity em primeiro plano.
+Aplicativo experimental para testar se um serviço de acessibilidade Android consegue receber eventos de mouse enquanto outro app está em primeiro plano.
 
-Testa movimento/hover, pressionar/soltar botões e rodinha vertical/horizontal.
+## Como testar
+1. Instale o APK.
+2. Conceda "Permitir sobreposição" para mostrar a bolinha.
+3. Ative "Bongo Cat — teste do mouse" em Configurações > Acessibilidade.
+4. Volte ao app e confirme que a bolinha com o gato aparece.
+5. Abra outro app de teste e mova o mouse. O gato deve atualizar o texto para MOVE, CLICK ou RODÍZIO se o Android entregar esses eventos ao serviço.
 
-**Limite:** não é captura global em segundo plano. Não prova que um overlay consegue observar o mouse enquanto outro jogo está aberto. Não solicita permissões especiais, não injeta eventos e não altera controles de outros apps.
+## Aviso essencial
+Este método usa AccessibilityService.setMotionEventSources (Android 14+). A entrega de eventos de movimento ao serviço pode interferir no encaminhamento desses eventos para outros apps/aparelhos. Portanto, o teste pode fazer o mouse deixar de controlar corretamente o app em primeiro plano. Não use durante partidas. Desative o serviço em Configurações > Acessibilidade para voltar ao comportamento normal.
 
-Build automatizado: GitHub Actions, workflow "Build Bongo Cat Mouse Test APK".
+O app não registra texto digitado, não lê conteúdo de telas, não injeta cliques e não envia dados para a internet. O overlay só exibe o tipo e a contagem dos eventos recebidos.
 
-CI workflow SDK setup corrected; rebuild requested.
+Build: GitHub Actions, workflow "Build Bongo Cat Mouse Test APK".
