@@ -41,6 +41,29 @@ jobs:
           unzip -q Bongo-Cat-Mobile-Android-Nativo.zip -d extracted
           echo "PROJECT_DIR=$GITHUB_WORKSPACE/extracted/Bongo-Cat-Mobile-arquivos/android-nativo" >> "$GITHUB_ENV"
 
+      - name: Align Java and Kotlin JVM targets
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/build.gradle.kts")
+          s = p.read_text()
+          marker = "android {"
+          config = """android {
+              compileOptions {
+                  sourceCompatibility = JavaVersion.VERSION_17
+                  targetCompatibility = JavaVersion.VERSION_17
+              }
+              kotlinOptions {
+                  jvmTarget = "17"
+              }
+          """
+          if "jvmTarget = \"17\"" not in s:
+              if marker not in s:
+                  raise SystemExit("Bloco android não encontrado em app/build.gradle.kts")
+              s = s.replace(marker, config, 1)
+              p.write_text(s)
+          PY
+
       - name: Build debug APK
         run: gradle --no-daemon --stacktrace assembleDebug
         working-directory: ${{ env.PROJECT_DIR }}
