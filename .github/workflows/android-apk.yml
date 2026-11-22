@@ -47,6 +47,14 @@ jobs:
           find extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main -type f -maxdepth 8 -print
           echo "=== INPUT / OVERLAY REFERENCES ==="
           grep -RniE "onKey|onTouch|dispatchGesture|AccessibilityService|TYPE_APPLICATION_OVERLAY|onGenericMotion|onHover|MotionEvent|KeyEvent|InputManager|mouse|keyboard|pointer" extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main || true
+          echo "=== ACCESSIBILITY SERVICE ==="
+          sed -n '1,240p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/CatAccessibilityService.kt
+          echo "=== EVENT BUS ==="
+          sed -n '1,200p' extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/java/com/bongocat/mobile/CatEventBus.kt
+          echo "=== ACCESSIBILITY CONFIG ==="
+          cat extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/res/xml/bongo_accessibility.xml
+          echo "=== MANIFEST ==="
+          cat extracted/Bongo-Cat-Mobile-arquivos/android-nativo/app/src/main/AndroidManifest.xml
 
       - name: Align Java and Kotlin JVM targets
         run: |
