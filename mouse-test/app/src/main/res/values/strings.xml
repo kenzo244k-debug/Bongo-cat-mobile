@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="accessibility_description">Teste experimental para observar eventos de mouse e atualizar o gatinho flutuante.</string>
+</resources>
